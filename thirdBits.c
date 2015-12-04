@@ -8,14 +8,14 @@ int a,i,res;
 
 a=36;
 res=36;
-a=a<<3;
-res=res+a;
-a=a<<3;
-res=res+a;
-a=a<<3;
-res=res+a;
-a=a<<3;
-res=res+a;
+a=a << 6 ;
+res=res + a;
+a=a << 6;
+res=res + a;
+a=a << 6;
+res=res + a;
+a=a << 6 ;
+res=res + a;
 
 return res;
 }

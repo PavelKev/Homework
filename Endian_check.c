@@ -9,11 +9,11 @@ int Endian_check(void)
   int i;
 
   k=1;
-  p1 = &k;
+  p1 = & k;
   p=(char*)p1;
   x=*p;
   i=x;
-  return 1;
+  return i;
 }
 
 int main()
