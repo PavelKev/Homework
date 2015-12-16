@@ -1,13 +1,14 @@
+#include <cstdio>
 #include <conio.h>
 #include <stdlib.h>
 
 typedef struct Element
 {
-int val;
-struct Element *next;
+	int val;
+	struct Element *next;
 }element;
 
-element* exit_(element *h)//очистка памяти, удаление списка, клавиша q
+element* clear(element *h)//очистка памяти, удаление списка, клавиша q
 {
 	element *p = NULL;
 
@@ -43,8 +44,16 @@ element* append(element *h)//добавление элемента в конец списка, клавиша a, пото
 	if (h == NULL)
 	{
 		h = (element*)malloc(sizeof(element));
-		h->val = a;
-		h->next = NULL;
+		if (h != NULL)
+		{
+
+			h->val = a;
+			h->next = NULL;
+		}
+		else
+		{
+			printf("ЌҐў®§¬®¦­® ўл¤Ґ«Ёвм Ї ¬пвм\n");
+		}
 	}
 	else
 	{
@@ -54,16 +63,23 @@ element* append(element *h)//добавление элемента в конец списка, клавиша a, пото
 			p = p->next;
 		}
 		p->next = (element*)malloc(sizeof(element));
-		p = p->next;
-		p->val = a;
-		p->next = NULL;
+		if (p != NULL)
+		{
+			p = p->next;
+			p->val = a;
+			p->next = NULL;
+		}
+		else
+		{
+			printf("ЌҐў®§¬®¦­® ўл¤Ґ«Ёвм Ї ¬пвм\n");
+		}
 	}
 	return h;
 }
 
 element* del(element *h)//удаление первого числа, равного введенному, из списка, клавиша r, потом целое число
 {
-	element *p = NULL,*p1 = NULL;
+	element *p = NULL, *p1 = NULL;
 	int a,bol;
 
 	scanf("%d",&a);
@@ -103,21 +119,29 @@ element* first(element *h)//добавление элемента в начало списка, клавиша f, пото
 	int a;
 
 	scanf("%d",&a);
-
 	p = (element*)malloc(sizeof(element));
-	p->val = a;
-	p->next = h;
+	if (p != NULL)
+	{
+		p->val = a;
+		p->next = h;
+	}
+	else
+	{
+		p = h;
+		printf("ЌҐў®§¬®¦­® ўл¤Ґ«Ёвм Ї ¬пвм\n");
+	}
 
 	return p;
 }
+
+
 int kontrol(element *h)//проверка на существование циклов. Возвращает 1 - цикл есть, 0 - цикла нет
 {
 	element *p = NULL, *p1 = NULL;
 	int k;
 
-	k=0;
-	p1= p = h;
-
+	k = 0;
+	p1 = p = h;
 
 	while ((p1 != NULL)&&(!k))
 	{
@@ -149,11 +173,11 @@ int cirk(element *h)//вводит целое число, потом замыкает хвост списка на элемент
 					//append вызывают зависание.
 {
 	element *p = NULL, *p1 = NULL;
-	int rez,a,i = 0;
+	int rez, a, i = 0;
 
 	scanf("%d",&a);
 	p1 = p = h;
-	if (h ==NULL)
+	if (h == NULL)
 	{
 		rez= 0;
 	}
@@ -184,7 +208,7 @@ return rez;
 
 int main(void)
 {
-	int hod,bol = 1,k;
+	int hod, bol = 1;
 	element *head = NULL;
 
 	do
@@ -193,18 +217,17 @@ int main(void)
 //		printf("%d\n",hod);
 		switch (hod)
 		{
-		case 97:
+		case 'a':
 			head = append(head);
 		break;
-		case 99:
+		case 'c':
 			cirk(head);
 		break;
-		case 102:
+		case 'f':
 			head = first(head);
 		break;
-		case 107:
-    		k = kontrol(head);
-    		if(k)
+		case 'k':
+			if(kontrol(head))
     		{
     			printf("yes\n");
     		}
@@ -213,15 +236,15 @@ int main(void)
     			printf("no\n");
     		}
 		break;
-		case 112:
-    		print_list(head);
+		case 'p':
+			print_list(head);
 		break;
-		case 113:
-    		head = exit_(head);
-    		bol = 0;
+		case 'q':
+			head = clear(head);
+			bol = 0;
 		break;
-		case 114:
-    		head = del(head);
+		case 'r':
+			head = del(head);
 		break;
 		}
 

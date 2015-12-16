@@ -1,13 +1,14 @@
+#include <cstdio>
 #include <conio.h>
 #include <stdlib.h>
 
 typedef struct Element
 {
-int val;
-struct Element *next;
+	int val;
+	struct Element *next;
 }element;
 
-void exit_(element *h)//очистка памяти, удаление списка, клавиша q
+element* clear(element *h)//очистка памяти, удаление списка, клавиша q
 {
 	element *p = NULL;
 
@@ -18,6 +19,7 @@ void exit_(element *h)//очистка памяти, удаление списка, клавиша q
 		free(h);
 		h = p;
 	}
+	return h;
 }
 void print_list(element *h)//печать списка, клавиша p
 {
@@ -42,8 +44,16 @@ element* append(element *h)//добавление элемента в конец списка, клавиша a, пото
 	if (h == NULL)
 	{
 		h = (element*)malloc(sizeof(element));
-		h->val = a;
-		h->next = NULL;
+		if (h != NULL)
+		{
+
+			h->val = a;
+			h->next = NULL;
+		}
+		else
+		{
+			printf("ЌҐў®§¬®¦­® ўл¤Ґ«Ёвм Ї ¬пвм\n");
+		}
 	}
 	else
 	{
@@ -53,9 +63,16 @@ element* append(element *h)//добавление элемента в конец списка, клавиша a, пото
 			p = p->next;
 		}
 		p->next = (element*)malloc(sizeof(element));
-		p = p->next;
-		p->val = a;
-		p->next = NULL;
+		if (p != NULL)
+		{
+			p = p->next;
+			p->val = a;
+			p->next = NULL;
+		}
+		else
+		{
+			printf("ЌҐў®§¬®¦­® ўл¤Ґ«Ёвм Ї ¬пвм\n");
+		}
 	}
 	return h;
 }
@@ -102,10 +119,17 @@ element* first(element *h)//добавление элемента в начало списка, клавиша f, пото
 	int a;
 
 	scanf("%d",&a);
-
 	p = (element*)malloc(sizeof(element));
-	p->val = a;
-	p->next = h;
+	if (p != NULL)
+	{
+		p->val = a;
+		p->next = h;
+	}
+	else
+	{
+		p = h;
+		printf("ЌҐў®§¬®¦­® ўл¤Ґ«Ёвм Ї ¬пвм\n");
+	}
 
 	return p;
 }
@@ -121,21 +145,21 @@ int main(void)
 //		printf("%d\n",hod);
 		switch (hod)
 		{
-		case 97:
+		case 'a':
 			head = append(head);
 		break;
-		case 102:
+		case 'f':
 			head = first(head);
 		break;
-		case 112:
-    		print_list(head);
+		case 'p':
+			print_list(head);
 		break;
-		case 113:
-            exit_(head);
-    		bol = 0;
+		case 'q':
+			head = clear(head);
+			bol = 0;
 		break;
-		case 114:
-    		head = del(head);
+		case 'r':
+			head = del(head);
 		break;
 		}
 
@@ -144,5 +168,3 @@ int main(void)
 
 	return 0;
 }
-
-

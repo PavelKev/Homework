@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <time.h>
 #include <conio.h>
 #include <stdlib.h>
@@ -8,7 +9,7 @@
 
 unsigned long kvanto;
 
-int slu(int ra)
+int slu (int ra)
 {
 	int i;
 
@@ -17,24 +18,24 @@ int slu(int ra)
 	return i;
 }
 
-void zap(int *p,int *p1,int *p2, unsigned long k)
+void zap (int *p, int *p1, int *p2, unsigned long k)
 {
 	int i;
-	time_t  t;
+	time_t t;
 
-	t = time(NULL);
-	srand(t);
+	t = time (NULL);
+	srand (t);
 
-    for (i = 0; i < k; i++)
+for (i = 0; i < k; i++)
 	{
-		 p2[i] = p1[i] = p[i] = slu(POTOLOK);
+		 p2[i] = p1[i] = p[i] = slu (POTOLOK);
 	}
 }
 
 
-void puzyrok(int *p,unsigned long k)
+void puzyrok (int *p, unsigned long k)
 {
-	int i,j,b;
+	int i, j, b;
 	char bol;
 
 	j = k;
@@ -52,13 +53,13 @@ void puzyrok(int *p,unsigned long k)
 			}
 		}
 		j--;
-    } while(bol);
+} while (bol);
 
 }
 
-void rascheska(int *p,unsigned long k)
+void rascheska (int *p, unsigned long k)
 {
-	int i,b,l,ste;
+	int i, b, l,ste;
 
 	ste = k;
 
@@ -68,21 +69,21 @@ void rascheska(int *p,unsigned long k)
 		l = k - ste;
 		for (i = 0; i < l; i++)
 		{
-			if(p[i] > p[i+ste])
+			if(p[i] > p[i + ste])
 			{
 				b = p[i];
-				p[i] = p[i+ste];
+				p[i] = p[i + ste];
 				p[i+ste] = b;
 			}
 		}
-    } while(ste>2);
-	puzyrok(p,k);
+	} while (ste > 2);
+	puzyrok (p, k);
 
 }
 
-void podschet(int *p,unsigned long k)
+void podschet(int *p, unsigned long k)
 {
-	int i,j,l,pp[POTOLOK];
+	int i, j, l, pp[POTOLOK];
 
 	for (i = 0; i < POTOLOK; i++)
 	{
@@ -92,7 +93,7 @@ void podschet(int *p,unsigned long k)
 	{
 		pp[p[i]]++;
 	}
-	l=0;
+	l = 0;
 	for (i = 0; i < POTOLOK; i++)
 	{
 		for (j = 0; j < pp[i]; j++)
@@ -105,54 +106,63 @@ void podschet(int *p,unsigned long k)
 }
 
 
-int main()
+int main ()
 {
-	int *p,*p1,*p2,i;
-	clock_t cl_start,cl_finish;
+	int *p, *p1, *p2, i;
+	clock_t cl_start, cl_finish;
 	double sek;
 
 	p = NULL;
 	p1 = NULL;
 	p2 = NULL;
-	scanf("%d",&kvanto);
+	scanf ("%d", &kvanto);
 
-   	p = (int*) malloc(kvanto * sizeof(int));
-	p1 = (int*) malloc(kvanto * sizeof(int));
+ 	p = (int*) malloc(kvanto * sizeof(int));
+ 	p1 = (int*) malloc(kvanto * sizeof(int));
 	p2 = (int*) malloc(kvanto * sizeof(int));
 
-    zap(p,p1,p2,kvanto);
+	if ((p != NULL)&&(p1 != NULL)&&(p2 != NULL))
+	{
+		zap(p,p1,p2,kvanto);
 
+		cl_start = clock();
+		podschet(p,kvanto);
+		cl_finish = clock();
+		sek = cl_finish - cl_start;
+		sek = sek / CLOCKS_PER_SEC;
+		printf("%f\n",sek);
 
+		cl_start = clock();
+		rascheska(p1,kvanto);
+		cl_finish = clock();
+		sek = cl_finish - cl_start;
+		sek = sek / CLOCKS_PER_SEC;
+		printf("%f\n",sek);
 
-	cl_start = clock();
-    podschet(p,kvanto);
-	cl_finish = clock();
-	sek = cl_finish - cl_start;
-	sek = sek / CLOCKS_PER_SEC;
-    printf("%f\n",sek);
+		cl_start = clock();
+		puzyrok(p2,kvanto);
+		cl_finish = clock();
+		sek = cl_finish - cl_start;
+		sek = sek / CLOCKS_PER_SEC;
+		printf("%f\n",sek);
 
-	cl_start = clock();
-    rascheska(p1,kvanto);
-	cl_finish = clock();
-	sek = cl_finish - cl_start;
-	sek = sek / CLOCKS_PER_SEC;
-    printf("%f\n",sek);
+	}
 
+	if (p != NULL)
+	{
+		free(p);
+	}
 
-	cl_start = clock();
-    puzyrok(p2,kvanto);
-	cl_finish = clock();
-	sek = cl_finish - cl_start;
-	sek = sek / CLOCKS_PER_SEC;
-    printf("%f\n",sek);
+	if (p1 != NULL)
+	{
+		free(p1);
+	}
 
+	if (p2 != NULL)
+	{
+		free(p2);
+	}
 
-
-
-    free(p);
-    free(p1);
-    free(p2);
-    getch();
-    return 0;
+	getch();
+	return 0;
 }
-
