@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <conio.h>
@@ -124,7 +124,7 @@ int del_el (tab *t, char *b)
 	if (t->list[hash] != NULL)
 	{
 		p1 = t->list[hash];
-		if (!strncmp (b, p1->str, len))
+		if (!strcmp (b, p1->str))
 		{
 			t->list[hash] = p1->next;
 			free(p1);
@@ -135,7 +135,7 @@ int del_el (tab *t, char *b)
 		{
 		do
 		{
-			if(!strncmp (b, p1->str, len))
+			if(!strcmp (b, p1->str))
 			{
 				p2->next = p1->next;
 				free (p1);
@@ -224,7 +224,7 @@ int get_el (tab *t, char *b)
 
 	while (p1 != NULL)
 	{
-		if(!strncmp (b, p1->str, len))
+		if(!strcmp (b, p1->str))
 		{
 			val = p1->val;
 			break;
@@ -272,7 +272,7 @@ int add_el (tab *t, char *b)
 		p1 = t->list[hash];
 		do
 		{
-			if(!strncmp (b, p1->str, len))
+			if(!strcmp (b, p1->str))
 			{
 				p1->val++;
 				l = 0;
