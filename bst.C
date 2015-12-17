@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <conio.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 typedef struct Element
 {
