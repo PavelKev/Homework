@@ -1,7 +1,8 @@
 #include <conio.h>
 #include <stdio.h>
-#include <math.h>#include <stdlib.h>
-
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 void floatBits3 (float a)
 {
@@ -38,7 +39,28 @@ int main()
 	float a;
 
 	gets (buffer);
-	a = atof (buffer);
+	if (!strcmp(buffer, "NaN"))
+	{
+		a = 0.0 / 0;
+	}
+	else
+	{
+		if (!strcmp(buffer, "+inf")|| !strcmp(buffer, "+ inf"))
+		{
+			a = 1.0 / 0;
+		}
+		else
+		{
+			if (!strcmp(buffer, "-inf") || !strcmp(buffer, "- inf"))
+			{
+				a = -1.0 / 0;
+			}
+			else
+			{
+				a = atof (buffer);
+			}
+		}
+	}
 	floatBits3 (a);
 	getch ();
 	return 0;

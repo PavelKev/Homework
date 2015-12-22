@@ -5,6 +5,7 @@
 #include <ctype.h>
 
 #define max_string 25
+#define TABLE_SIZE 0x10000
 
 typedef struct Element
 {
@@ -16,75 +17,67 @@ typedef struct Element
 typedef struct Tab
 {
 	element **list;
-	unsigned short (*fptr)(char*, unsigned int);
+	unsigned int (*fptr)(char*, unsigned int);
 }tab;
 
-unsigned short constHash (char *str, unsigned int len)
+unsigned int constHash (char *str, unsigned int len)
 {
 	return 153;
 }
-unsigned short sumHash (char *str, unsigned int len)
+unsigned int sumHash (char *str, unsigned int len)
 {
 	unsigned int i = 0;
-	unsigned short ha16 = 0;
+	unsigned int hash = 0;
 
-	for (i = 0; i < len; i++) {
-		ha16 += (unsigned char)(str[i]);
+	for (i = 0; i < len; i++)
+	{
+		hash += (unsigned char)(str[i]);
 	}
-	return ha16;
+	return hash;
 }
-unsigned short faq6Hash (char *str, unsigned int len)
+unsigned int faq6Hash (char *str, unsigned int len)
 {
 	unsigned int hash = 0, i = 0;
-	unsigned short ha16 = 0;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		hash += (unsigned char)(str[i]);
 		hash += (hash << 10);
 		hash ^= (hash >> 6);
-
 	}
 	hash += (hash << 3);
 	hash ^= (hash >> 11);
 	hash += (hash << 15);
-	ha16 = hash & 0xFFFF;
-	return ha16;
+	return hash;
 }
 
-
-unsigned short ROT13Hash (char *str, unsigned int len)
+unsigned int ROT13Hash (char *str, unsigned int len)
 {
 	unsigned int hash = 0, i = 0;
-	unsigned short ha16 = 0;
 
-	for (i = 0; i < len; i++) {
+	for (i = 0; i < len; i++)
+	{
 		hash += (unsigned char)(str[i]);
 		hash -= (hash << 13) | (hash >> 19);
 	}
-	//ha16 = hash >> 16;
-
-
-	ha16 = hash & 0xFFFF;
-	return ha16;
+	return hash;
 }
 
-void create_tab (tab *t, unsigned short (*fptr)(char*, unsigned int))
+void create_tab (tab *t, unsigned int (*fptr)(char*, unsigned int))
 {
 	unsigned int i;
 
-	t->list = (element**)malloc (0xFFFF*sizeof(element*));
+	t->list = (element**)malloc (TABLE_SIZE*sizeof(element*));
 
 	if (t->list != NULL)
 	{
 		t->fptr = fptr;
 
-		for (i = 0; i <= 0xFFFF; i++)
+		for (i = 0; i < TABLE_SIZE; i++)
 		{
 			t->list[i] = NULL;
-
 		}
 	}
-
 	return;
 }
 void clear_tab (tab *t)
@@ -92,7 +85,7 @@ void clear_tab (tab *t)
 	element *p1, *p2;
 	int i;
 
-	for (i = 0; i <= 0xFFFF; i++)
+	for (i = 0; i < TABLE_SIZE; i++)
 	{
 		p2 = p1 = t->list[i];
 		while (p1 != NULL)
@@ -101,25 +94,21 @@ void clear_tab (tab *t)
 			free(p2);
 			p2 = p1;
 		}
-
 	}
-
 	free(t->list);
 
 	return ;
 }
 
-
 int del_el (tab *t, char *b)
 {
 	int l = 0;
 	size_t len;
-	unsigned short hash = 0;
+	unsigned int hash = 0;
 	element *p1, *p2;
 
 	len = strlen (b);
-	hash = t->fptr (b, len);
-
+	hash = t->fptr (b, len) % TABLE_SIZE;
 
 	if (t->list[hash] != NULL)
 	{
@@ -129,30 +118,25 @@ int del_el (tab *t, char *b)
 			t->list[hash] = p1->next;
 			free(p1);
 			l = 1;
-
 		}
 		else
 		{
-		do
-		{
-			if(!strcmp (b, p1->str))
+			do
 			{
-				p2->next = p1->next;
-				free (p1);
-				l = 1;
-			}
-			else
-			{
-				p2 = p1;
-				p1 = p1->next;
-			}
-		}while ((p1 != NULL) && (!l));
-
+				if(!strcmp (b, p1->str))
+				{
+					p2->next = p1->next;
+					free (p1);
+					l = 1;
+				}
+				else
+				{
+					p2 = p1;
+					p1 = p1->next;
+				}
+			}while ((p1 != NULL) && (!l));
 		}
-
 	}
-
-
 	return l;
 }
 void stat (tab *t, unsigned int *nepust, unsigned int *kolel,
@@ -167,7 +151,7 @@ void stat (tab *t, unsigned int *nepust, unsigned int *kolel,
 	*max = 0;
 	*min = 0;
 
-	for (i = 0; i <= 0xFFFF; i++)
+	for (i = 0; i < TABLE_SIZE; i++)
 	{
 		if (t->list[i] != NULL)
 		{
@@ -193,7 +177,6 @@ void stat (tab *t, unsigned int *nepust, unsigned int *kolel,
 				*min = val;
 			}
 			*kolel += val;
-
 		}
 	}
 	if (*nepust != 0)
@@ -209,16 +192,15 @@ void stat (tab *t, unsigned int *nepust, unsigned int *kolel,
 	return ;
 }
 
-
 int get_el (tab *t, char *b)
 {
 	int val = 0;
 	size_t len;
-	unsigned short hash = 0;
+	unsigned int hash = 0;
 	element *p1;
 
 	len = strlen (b);
-	hash = t->fptr (b, len);
+	hash = t->fptr (b, len) % TABLE_SIZE;
 
 	p1 = t->list[hash];
 
@@ -234,16 +216,16 @@ int get_el (tab *t, char *b)
 
 	return val;
 }
+
 int add_el (tab *t, char *b)
 {
 	int l = 1, er = 0;
 	size_t len;
-	unsigned short hash = 0;
+	unsigned int hash = 0;
 	element *p1, *p2;
 
 	len = strlen (b);
-	hash = t->fptr (b, len);
-//	printf("%d\n", hash);
+	hash = t->fptr (b, len) % TABLE_SIZE;
 	if (t->list[hash] == NULL)
 	{
 		t->list[hash] = (element*)malloc (sizeof(element));
@@ -305,7 +287,6 @@ int add_el (tab *t, char *b)
 			{
 				er = 1;
 			}
-
 		}
 	}
 
@@ -315,8 +296,7 @@ int add_el (tab *t, char *b)
 int main(void)
 {
 	tab TAB;
-	unsigned short (*hf)(char*, unsigned int) = NULL;
-	unsigned short hash = 0;
+	unsigned int (*hf)(char*, unsigned int) = NULL;
 	char buffer[max_string];
 	size_t len;
 	int hod, bol = 1;
@@ -325,6 +305,16 @@ int main(void)
 			FILE  *fp;
 			char line[255];
 			int i,hh;
+
+	fp = fopen ("help.txt", "r");
+	if (fp != NULL)
+	{
+		while (fgets (line,255,fp)!= NULL)
+		{
+		puts (line);
+		}
+		fclose(fp);
+	}
 
 	TAB.list = NULL;
 	hf = ROT13Hash;
@@ -399,14 +389,12 @@ int main(void)
 			if (TAB.list != NULL)
 			{
 				scanf ("%25s", buffer);
-
 				printf ("%d\n",get_el (&TAB, buffer));
 			}
 			else
 			{
 				puts("The table not created yet");
 			}
-
 		break;
 		case 'd':
 			if (TAB.list != NULL)
@@ -419,7 +407,6 @@ int main(void)
 				else
 				{
 					puts("The element is deleted");
-
 				}
 			}
 			else
@@ -432,7 +419,6 @@ int main(void)
 			{
 				stat (&TAB, &nepust, &kolel, &min, &max, &sred);
 			printf("%d %d %d %d %f \n", nepust, kolel, min, max, sred);
-
 			}
 			else
 			{
@@ -444,3 +430,4 @@ int main(void)
 
 	return 0;
 }
+

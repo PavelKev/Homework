@@ -6,7 +6,7 @@
 #include <time.h>
 
 #define max_string 25
-
+#define TABLE_SIZE 0x10000
 
 typedef struct Element
 {
@@ -18,27 +18,26 @@ typedef struct Element
 typedef struct Tab
 {
 	element **list;
-	unsigned short (*fptr)(char*, unsigned int);
+	unsigned int (*fptr)(char*, unsigned int);
 }tab;
 
-unsigned short constHash (char *str, unsigned int len)
+unsigned int constHash (char *str, unsigned int len)
 {
 	return 153;
 }
-unsigned short sumHash (char *str, unsigned int len)
+unsigned int sumHash (char *str, unsigned int len)
 {
 	unsigned int i = 0;
-	unsigned short ha16 = 0;
+	unsigned int hash = 0;
 
 	for (i = 0; i < len; i++) {
-		ha16 += (unsigned char)(str[i]);
+		hash += (unsigned char)(str[i]);
 	}
-	return ha16;
+	return hash;
 }
-unsigned short faq6Hash (char *str, unsigned int len)
+unsigned int faq6Hash (char *str, unsigned int len)
 {
 	unsigned int hash = 0, i = 0;
-	unsigned short ha16 = 0;
 
 	for (i = 0; i < len; i++) {
 		hash += (unsigned char)(str[i]);
@@ -49,27 +48,22 @@ unsigned short faq6Hash (char *str, unsigned int len)
 	hash += (hash << 3);
 	hash ^= (hash >> 11);
 	hash += (hash << 15);
-	ha16 = hash & 0xFFFF;
-	return ha16;
+	return hash;
 }
 
-
-unsigned short ROT13Hash (char *str, unsigned int len)
+unsigned int ROT13Hash (char *str, unsigned int len)
 {
 	unsigned int hash = 0, i = 0;
-	unsigned short ha16 = 0;
 
 	for (i = 0; i < len; i++) {
 		hash += (unsigned char)(str[i]);
 		hash -= (hash << 13) | (hash >> 19);
 	}
 
-
-	ha16 = hash & 0xFFFF;
-	return ha16;
+	return hash;
 }
 
-char UpCase(char c)
+char UpCase (char c)
 {
 	if (c >= 'a' && c <= 'z')
 	{
@@ -79,28 +73,28 @@ char UpCase(char c)
 	return c;
 }
 
-int isBukva(char c)
+int isBukva (char c)
 {
 	int i = 0;
 
-	if (c >= 'a' && c <= 'z')
+	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
 	{
 		i = 1;
 	}
 	return i;
 }
 
-void create_tab (tab *t, unsigned short (*fptr)(char*, unsigned int))
+void create_tab (tab *t, unsigned int (*fptr)(char*, unsigned int))
 {
 	unsigned int i;
 
-	t->list = (element**)malloc (0xFFFF*sizeof(element*));
+	t->list = (element**)malloc (TABLE_SIZE*sizeof(element*));
 
 	if (t->list != NULL)
 	{
 		t->fptr = fptr;
 
-		for (i = 0; i <= 0xFFFF; i++)
+		for (i = 0; i < TABLE_SIZE; i++)
 		{
 			t->list[i] = NULL;
 
@@ -114,7 +108,7 @@ void clear_tab (tab *t)
 	element *p1, *p2;
 	int i;
 
-	for (i = 0; i <= 0xFFFF; i++)
+	for (i = 0; i < TABLE_SIZE; i++)
 	{
 		p2 = p1 = t->list[i];
 		while (p1 != NULL)
@@ -136,11 +130,11 @@ int del_el (tab *t, char *b)
 {
 	int l = 0;
 	size_t len;
-	unsigned short hash = 0;
+	unsigned int hash = 0;
 	element *p1, *p2;
 
 	len = strlen (b);
-	hash = t->fptr (b, len);
+	hash = t->fptr (b, len) % TABLE_SIZE;
 
 
 	if (t->list[hash] != NULL)
@@ -189,7 +183,7 @@ void stat (tab *t, unsigned int *nepust, unsigned int *kolel,
 	*max = 0;
 	*min = 0;
 
-	for (i = 0; i <= 0xFFFF; i++)
+	for (i = 0; i < TABLE_SIZE; i++)
 	{
 		if (t->list[i] != NULL)
 		{
@@ -236,11 +230,11 @@ int get_el (tab *t, char *b)
 {
 	int val = 0;
 	size_t len;
-	unsigned short hash = 0;
+	unsigned int hash = 0;
 	element *p1;
 
 	len = strlen (b);
-	hash = t->fptr (b, len);
+	hash = t->fptr (b, len) % TABLE_SIZE;
 
 	p1 = t->list[hash];
 
@@ -260,11 +254,11 @@ int add_el (tab *t, char *b)
 {
 	int l = 1, er = 0;
 	size_t len;
-	unsigned short hash = 0;
+	unsigned int hash = 0;
 	element *p1, *p2;
 
 	len = strlen (b);
-	hash = t->fptr (b, len);
+	hash = t->fptr (b, len) % TABLE_SIZE;
 	if (t->list[hash] == NULL)
 	{
 		t->list[hash] = (element*)malloc (sizeof(element));
@@ -336,7 +330,6 @@ int add_el (tab *t, char *b)
 }
 
 
-
 void zap (tab *t)
 {
 	int i, j;
@@ -345,12 +338,12 @@ void zap (tab *t)
 	char line[255], buffer[max_string];
 	element *p1, *p2;
 
-	fp = fopen ("c:/c/libstat.txt","w");
+	fp = fopen ("output.txt","w");
 
 	if (fp != NULL)
 	{
 
-		for (i = 0; i <= 0xFFFF; i++)
+		for (i = 0; i < TABLE_SIZE; i++)
 		{
 			if (t->list[i] != NULL)
 			{
@@ -378,7 +371,7 @@ int gruz (tab *t)
 	FILE  *fp;
 	char line[255], buffer[max_string];
 
-	fp = fopen ("c:/c/lib3.txt","r");
+	fp = fopen ("input.txt","r");
 	if (fp != NULL)
 	{
 
@@ -417,8 +410,7 @@ int gruz (tab *t)
 int main(void)
 {
 	tab TAB;
-	unsigned short (*hf)(char*, unsigned int) = NULL;
-	unsigned short hash = 0;
+	unsigned int (*hf)(char*, unsigned int) = NULL;
 	char buffer[max_string];
 	size_t len;
 	int hod, bol = 1, gr;
@@ -426,7 +418,18 @@ int main(void)
 	double sred;
 	clock_t cl_start,cl_finish;
 	double sek;
+	FILE  *fp;
+	char line[255];
 
+	fp = fopen ("help2.txt", "r");
+	if (fp != NULL)
+	{
+		while (fgets (line,255,fp)!=NULL)
+		{
+		puts (line);
+		}
+		fclose(fp);
+	}
 
 	TAB.list = NULL;
 	hf = ROT13Hash;
@@ -488,7 +491,6 @@ int main(void)
 				{
 					puts("Not enough memory");
 				}
-
 			}
 		break;
 		case 'a':
@@ -516,7 +518,6 @@ int main(void)
 			{
 				puts("The table not created yet");
 			}
-
 		break;
 		case 'd':
 			if (TAB.list != NULL)
@@ -565,9 +566,6 @@ int main(void)
 					sek = sek / CLOCKS_PER_SEC;
 					printf("%f\n",sek);
 				}
-
-				//printf("%d\n", gruz (&TAB));
-
 			}
 			else
 			{

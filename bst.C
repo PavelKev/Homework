@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <conio.h>
 #include <stdio.h>
+#include <ctype.h>
 
 typedef struct Element
 {
@@ -41,7 +42,6 @@ element* append(element *h, int a)
 		}
 
 	}
-
 	return h;
 }
 
@@ -94,7 +94,7 @@ element* del_a (element *h, int a)
 						h->val = h->right->val;
 						h->left = h->right->left;
 						h->right = h->right->right;
-						free(p);
+						free (p);
 						return h;
 					}
 					if (h->right == NULL)
@@ -103,7 +103,7 @@ element* del_a (element *h, int a)
 						h->val = h->left->val;
 						h->right = h->left->right;
 						h->left = h->left->left;
-						free(p);
+						free (p);
 						return h;
 					}
 					if (h->left->right == NULL)
@@ -176,6 +176,18 @@ int main(void)
 {
 	int hod, bol = 1, a, l;
 	element *head = NULL;
+	FILE  *fp;
+	char line[255];
+
+	fp = fopen ("help3.txt", "r");
+	if (fp != NULL)
+	{
+		while (fgets (line,255,fp)!=NULL)
+		{
+		puts (line);
+		}
+		fclose(fp);
+	}
 
 	do
 	{
