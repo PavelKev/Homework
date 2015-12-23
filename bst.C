@@ -15,7 +15,7 @@ element* append(element *h, int a)
 
 	if(h == NULL)
 	{
-		h = (element*)malloc(sizeof(element));
+		h = (element*)malloc (sizeof (element));
 		if (h != NULL)
 		{
 			h->val = a;
@@ -45,22 +45,26 @@ element* append(element *h, int a)
 	return h;
 }
 
-int check_a (element *h, int a, int l)
+int check_a (element *h, int a)
 {
+	int l = 0;
 	if (h != NULL)
 	{
-		if (!l)
-		{
 			if (h-> val == a)
 			{
 				l = 1;
 			}
 			else
 			{
-				l = check_a (h->left, a, l);
-				l = check_a (h->right, a, l);
+				if (h-> val > a)
+				{
+					l = check_a (h->left, a);
+				}
+				else
+				{
+					l = check_a (h->right, a);
+				}
 			}
-		}
 	}
 	return l;
 }
@@ -83,9 +87,9 @@ element* del_a (element *h, int a)
 			{
 				if (a == h-> val)
 				{
-					if ((h->left == NULL)&&(h->right == NULL))
+					if ((h->left == NULL) && (h->right == NULL))
 					{
-						free(h);
+						free (h);
 						return NULL;
 					}
 					if (h->left == NULL)
@@ -160,31 +164,31 @@ void tree_abc (element *h)
 {
 	if (h != NULL)
 	{
-		printf(" (%d", h->val);
+		printf (" (%d", h->val);
 		tree_abc (h->left);
 		tree_abc (h->right);
-		printf(")");
+		printf (")");
 	}
 	else
 	{
-		printf(" null");
+		printf (" null");
 	}
 }
 
 
 int main(void)
 {
-	int hod, bol = 1, a, l;
+	int hod, bol = 1, a;
 	element *head = NULL;
 	FILE  *fp;
 	char line[255];
 
-	fp = fopen ("help3.txt", "r");
+	fp = fopen ("help.txt", "r");
 	if (fp != NULL)
 	{
-		while (fgets (line,255,fp)!=NULL)
+		while (fgets (line, 255, fp) != NULL)
 		{
-		puts (line);
+			puts (line);
 		}
 		fclose(fp);
 	}
@@ -199,23 +203,22 @@ int main(void)
 			bol = 0;
 		break;
 		case 'a':
-			scanf("%d",&a);
+			scanf ("%d", &a);
 			head = append (head, a);
 		break;
 		case 'd':
-			scanf("%d",&a);
+			scanf ("%d",&a);
 			head = del_a (head, a);
 		break;
 		case 'c':
-			scanf("%d",&a);
-			l = 0;
-			if (check_a (head, a, l))
+			scanf ("%d",&a);
+			if (check_a (head, a))
 			{
-				printf("yes\n");
+				printf ("yes\n");
 			}
 			else
 			{
-				printf("no\n");
+				printf ("no\n");
 			}
 		break;
 		case '<':
@@ -230,11 +233,8 @@ int main(void)
 			tree_abc (head);
 			printf ("\n");
 		break;
-
 		}
-
 	} while(bol);
-
 
 	return 0;
 }
