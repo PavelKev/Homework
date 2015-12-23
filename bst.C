@@ -50,13 +50,13 @@ int check_a (element *h, int a)
 	int l = 0;
 	if (h != NULL)
 	{
-			if (h-> val == a)
+			if (h->val == a)
 			{
 				l = 1;
 			}
 			else
 			{
-				if (h-> val > a)
+				if (h->val > a)
 				{
 					l = check_a (h->left, a);
 				}
@@ -183,7 +183,7 @@ int main(void)
 	FILE  *fp;
 	char line[255];
 
-	fp = fopen ("help.txt", "r");
+	fp = fopen ("help3.txt", "r");
 	if (fp != NULL)
 	{
 		while (fgets (line, 255, fp) != NULL)
