@@ -17,28 +17,34 @@
 #define PROGRAM_ERROR_1 -13//Выход IP за пределы количества команд
 #define PROGRAM_ERROR_2 -15//Обращение к памяти вне пределов выделенной области
 
-typedef struct Metka//Элеменнт списка меток
+//состояния чтения из файла
+#define READ_SPASE 0
+#define READ_CMD 1
+#define READ_COMMENT 2
+#define READ_ERROR -100
+
+
+typedef struct Label//Элеменнт списка меток
 {
 	char str[25];
 	unsigned int val;
-	struct Metka *next;
-}metka;
+	struct Label *next;
+}label;
 
-typedef struct Coman//Элемент массива команд
+typedef struct Comand//Элемент массива команд
 {
 	char co;
 	unsigned int arg;
 }comand;
-typedef struct ElS//Элемент стека
+typedef struct Element_of_Stack//Элемент стека
 {
 	int val;
-	struct ElS *next;
-}els;
+	struct Element_of_Stack *next;
+}element_of_stack;
 
 unsigned int errnom = 0;
 
-
-void printmet (metka *p)//Печать списка меток (для отладки)
+void print_label (label *p)//Печать списка меток (для отладки)
 {
 	while (p != NULL)
 	{
@@ -47,10 +53,10 @@ void printmet (metka *p)//Печать списка меток (для отладки)
 	}
 	return;
 }
-metka* freemet (metka *h)//Удаление списка меток с освобождением памяти
+label* free_label (label *h)//Удаление списка меток с освобождением памяти
 {
-	metka *p = NULL;
-	
+	label *p = NULL;
+
 	p = h;
 	while (p != NULL)
 	{
@@ -61,13 +67,13 @@ metka* freemet (metka *h)//Удаление списка меток с освобождением памяти
 	return h;
 }
 
-metka* addmet(unsigned int a, char* str, metka* h)//Добавление метки в список меток
+label* add_label (unsigned int a, char* str, label* h)//Добавление метки в список меток
 {
-	metka *p = NULL, *p1;
-	
+	label *p = NULL, *p1;
+
 	if (h == NULL)
 	{
-		h = (metka*)malloc (sizeof (metka));
+		h = (label*)malloc (sizeof (label));
 		if (h != NULL)
 		{
 			h->val = a;
@@ -86,15 +92,15 @@ metka* addmet(unsigned int a, char* str, metka* h)//Добавление метки в список ме
 		{
 			if (!strcmp(p->str, str))
 			{
-				errnom = LINK_ERROR_1; 
+				errnom = LINK_ERROR_1;
 			}
 			p1 = p;
 			p = p->next;
 		};
-		
+
 		if (!errnom)
 		{
-			p1->next = (metka*)malloc (sizeof (metka));
+			p1->next = (label*)malloc (sizeof (label));
 			if (p1->next != NULL)
 			{
 				p1 = p1->next;
@@ -122,7 +128,7 @@ char ch_com(char* co)//Возвращает символ - номер команды по строке
 	if (!strcmp(co,"jmp")) return '7';
 	if (!strcmp(co,"br")) return '8';
 	if (!strcmp(co,"ret")) return '9';
-	
+
 	return '0';
 	}
 	void fine (void)
@@ -134,15 +140,15 @@ char ch_com(char* co)//Возвращает символ - номер команды по строке
 
 	}
 
-metka* inivrem(metka* mmm, unsigned int* numc)	//Создаёт список меток и временный файл vrem.tmp без меток, коментариев,
+label* init_temp_file(label* mmm, unsigned int* numc)	//Создаёт список меток и временный файл vrem.tmp без меток, коментариев,
 {												//и с более упорядоченной структурой (одна строка - одна команда, команды
 	FILE *fp = NULL, *fpv = NULL;				//представленны одним символом, а не строкой переменной длины, между
-	int sost = 0;								//командой и аргументом один пробел, лишние переводы строки, пробелы и 
+	int sost = 0;								//командой и аргументом один пробел, лишние переводы строки, пробелы и
 	unsigned int lcom, ef;						//табуляции удалены, переводы строки могут быть и добавлены)
 	char comanda [25], sim;
-	char est_metka = 0, est_com = 0, coma;
+	char ex_label = 0, ex_cmd = 0, coma;
 
-	
+
 	//fine();
 	fp = fopen(NAME, "rb");
 	if (fp == NULL)
@@ -155,13 +161,13 @@ metka* inivrem(metka* mmm, unsigned int* numc)	//Создаёт список меток и временны
 	ef = fread(&sim, sizeof(char), 1, fp);
  	while(ef)
 	{
-		switch (sost) 
+		switch (sost)
 		{
-		case 0:
-			switch (sim) 
+		case READ_SPASE:
+			switch (sim)
 			{
 			case ':':
-				sost = -100;
+				sost = READ_ERROR;
 			break;
 			case '\r':
 			case '\n':
@@ -169,28 +175,28 @@ metka* inivrem(metka* mmm, unsigned int* numc)	//Создаёт список меток и временны
 			case '\t':
 			break;
 			case ';':
-				sost = 2;
+				sost = READ_COMMENT;
 			break;
 			default:
-				sost = 1;
+				sost = READ_CMD;
 				lcom = 1;
 				comanda [0] = sim;
 			}
 		break;
-		case 1:
+		case READ_CMD:
 			switch (sim)
 			{
 			case ':':
-				if ((!est_metka)&&(!est_com))
+				if ((!ex_label)&&(!ex_cmd))
 				{
 					comanda [lcom] = '\0';
-					mmm = addmet(*numc, comanda, mmm);
-					est_metka = 1;
-					sost = 0;
+					mmm = add_label(*numc, comanda, mmm);
+					ex_label = 1;
+					sost = READ_SPASE;
 				}
 				else
 				{
-					sost = -100;
+					sost = READ_ERROR;
 				}
 			break;
 			case '\r':
@@ -199,14 +205,14 @@ metka* inivrem(metka* mmm, unsigned int* numc)	//Создаёт список меток и временны
 			case '\t':
 			case ';':
 				comanda [lcom] = '\0';
-				
-				if(!est_com)
+
+				if(!ex_cmd)
 				{
 					coma = ch_com(comanda);
 					switch (coma)
 					{
 						case '0':
-							sost = -100;
+							sost = READ_ERROR;
 						break;
 						case '1':
 						case '2':
@@ -214,14 +220,14 @@ metka* inivrem(metka* mmm, unsigned int* numc)	//Создаёт список меток и временны
 						case '7':
 						case '8':
 							fputc (coma, fpv);
-							est_com = 1;
-							if (sim == ';') 
+							ex_cmd = 1;
+							if (sim == ';')
 							{
-								sost = 2;
+								sost = READ_COMMENT;
 							}
 							else
 							{
-								sost = 0;
+								sost = READ_SPASE;
 							}
 						break;
 						case '4':
@@ -231,14 +237,14 @@ metka* inivrem(metka* mmm, unsigned int* numc)	//Создаёт список меток и временны
 							fputc (coma, fpv);
 							fputc ('\n', fpv);
 							(*numc)++;
-							est_metka = 0;
-							if (sim == ';') 
+							ex_label = 0;
+							if (sim == ';')
 							{
-								sost = 2;
+								sost = READ_COMMENT;
 							}
 							else
 							{
-								sost = 0;
+								sost = READ_SPASE;
 							}
 						break;
 					}
@@ -248,52 +254,52 @@ metka* inivrem(metka* mmm, unsigned int* numc)	//Создаёт список меток и временны
 					fputs (comanda, fpv);
 					fputc ('\n', fpv);
 					(*numc)++;
-					est_metka = 0;
-					est_com = 0;
-					if (sim == ';') 
+					ex_label = 0;
+					ex_cmd = 0;
+					if (sim == ';')
 					{
-						sost = 2;
+						sost = READ_COMMENT;
 					}
 					else
 					{
-						sost = 0;
+						sost = READ_SPASE;
 					}
 				}
-				
+
 			break;
 			default:
 				comanda [lcom] = sim;
 				lcom++;
 				if (lcom >= 25)
 				{
-					sost = -100;
+					sost = READ_ERROR;
 				}
 			}
 		break;
-		case 2:
+		case READ_COMMENT:
 			switch (sim)
 			{
 			case '\r':
 			case '\n':
-				sost = 0;
+				sost = READ_SPASE;
 			break;
 			}
 		break;
-		case -100:
+		case READ_ERROR:
 			fclose (fpv);
 			fclose (fp);
 			errnom = SYNTAX_ERROR;
 			return NULL;
 		break;
 		}
-		if(sost != -100)
+		if(sost != READ_ERROR)
 		{
 			ef = fread (&sim, sizeof(char), 1, fp);
 		}
-		
+
 	};
-	
-	if (est_com)
+
+	if (ex_cmd)
 	{
 		errnom = SYNTAX_ERROR;
 	}
@@ -307,26 +313,26 @@ metka* inivrem(metka* mmm, unsigned int* numc)	//Создаёт список меток и временны
 	return mmm;
 }
 
-void print_prog (comand* p, unsigned int* numc)//Печать массива команд (для отладки)
+void print_program (comand* p, unsigned int* numc)//Печать массива команд (для отладки)
 {
 	unsigned int i;
-	
+
 	for (i = 0; i < *numc; i++)
 	{
 		printf("%d %c %d\n", i, p[i].co, p[i].arg);
 	}
 }
 
-comand* inilink (comand* p, metka* h)	//Создаёт из временного файла массив команд, заменяя аргументы-метки на
+comand* init_vrem (comand* p, label* h)	//Создаёт из временного файла массив команд, заменяя аргументы-метки на
 {										//номера команд согласно списку меток
 	FILE *fpv = NULL;
 	char line[26], eme[26];
-	metka *hh;
+	label *hh;
 	unsigned int nc = 0, l, i;
-	
+
 	fpv = fopen("vrem.tmp", "r");
-	
-	while (fgets (line, 255, fpv) != NULL)	
+
+	while (fgets (line, 255, fpv) != NULL)
 	{
 		switch (line[0])
 		{
@@ -363,7 +369,7 @@ comand* inilink (comand* p, metka* h)	//Создаёт из временного файла массив коман
 					if (!strcmp(hh->str, eme))
 					{
 						l = 1;
-						p[nc].arg = hh->val; 
+						p[nc].arg = hh->val;
 					}
 					hh = hh->next;
 				}
@@ -373,24 +379,24 @@ comand* inilink (comand* p, metka* h)	//Создаёт из временного файла массив коман
 				}
 				nc++;
 			break;
-				
+
 		}
 	}
-	
+
 	fclose (fpv);
 	return p;
 
 }
 
-els* step(els* s, int* h, comand* p, unsigned int* sstack, unsigned int* IP)//Выполняет одну команду из массива команд
+element_of_stack* step(element_of_stack* s, int* h, comand* p, unsigned int* sstack, unsigned int* IP)//Выполняет одну команду из массива команд
 {
 	int rez;
-	els *sv = NULL;
-	
+	element_of_stack *sv = NULL;
+
 	switch (p[*IP].co)
 	{
 		case '1':
-			sv = (els*)malloc (sizeof (els));
+			sv = (element_of_stack*)malloc (sizeof (element_of_stack));
 			if (sv != NULL)
 			{
 				if ((p[*IP].arg < SIZE_OF_MEMORY) && (p[*IP].arg >= 0))
@@ -434,7 +440,7 @@ els* step(els* s, int* h, comand* p, unsigned int* sstack, unsigned int* IP)//Вы
 			}
 		break;
 		case '3':
-			sv = (els*)malloc (sizeof (els));
+			sv = (element_of_stack*)malloc (sizeof (element_of_stack));
 			if (sv != NULL)
 			{
 				sv->val = p[*IP].arg;
@@ -483,7 +489,7 @@ els* step(els* s, int* h, comand* p, unsigned int* sstack, unsigned int* IP)//Вы
 			{
 				sv = s;
 				s = s->next;
-					if (sv->val == s->val) 
+					if (sv->val == s->val)
 					{
 						s->val = 0;
 					}
@@ -496,7 +502,7 @@ els* step(els* s, int* h, comand* p, unsigned int* sstack, unsigned int* IP)//Вы
 						else
 						{
 							s->val = -1;
-						}	
+						}
 					}
 				free (sv);
 				(*IP)++;
@@ -535,13 +541,13 @@ els* step(els* s, int* h, comand* p, unsigned int* sstack, unsigned int* IP)//Вы
 			errnom = 2016;
 		break;
 	}
-	
+
 	return s;
 }
-els* freestack(els* h)//Удаление стека с освобождением памяти
+element_of_stack* free_stack(element_of_stack* h)//Удаление стека с освобождением памяти
 {
-	els *p = NULL;
-	
+	element_of_stack *p = NULL;
+
 	p = h;
 	while (p != NULL)
 	{
@@ -551,7 +557,7 @@ els* freestack(els* h)//Удаление стека с освобождением памяти
 	}
 	return h;
 }
-void printstack (els *p)//Печать стека
+void print_stack (element_of_stack *p)//Печать стека
 {
 	printf("Stack: ");
 	while (p != NULL)
@@ -566,23 +572,23 @@ void printstack (els *p)//Печать стека
 int main(void)
 {
 	comand *prog = NULL;
-	metka *metki = NULL;
+	label *labels = NULL;
 	char ag;
 	unsigned int sstack = 0, IP = 0, numc = 0;
-	
-	int *pamiat = NULL;
-	els *stack = NULL;
 
-	metki = inivrem(metki, &numc);
-//	printmet (metki);
+	int *pamiat = NULL;
+	element_of_stack *stack = NULL;
+
+	labels = init_temp_file(labels, &numc);
+//	print_label (labels);
 
 	if (!errnom)
 	{
 		prog = (comand*) malloc (numc * sizeof(comand));
 		if (prog != NULL)
 		{
-			prog = inilink (prog, metki);
-//			print_prog (prog, &numc);
+			prog = init_vrem (prog, labels);
+//			print_program (prog, &numc);
 		}
 		else
 		{
@@ -590,13 +596,13 @@ int main(void)
 		}
 
 	}
-	metki = freemet (metki);
+	labels = free_label (labels);
 	unlink("vrem.tmp");
 	if (!errnom)
 	{
 		printf("Preprocessing completed successfully\n");
 		printf("R - run; S - step; Q - exit\n");
-		 
+
 		ag = '0';
 		pamiat = (int*) malloc (SIZE_OF_MEMORY * sizeof(int));
 		if (pamiat != NULL)
@@ -610,7 +616,7 @@ int main(void)
 				case 's':
 					stack = step (stack, pamiat, prog, &sstack, &IP);
 					printf ("IP = %d, ", IP);
-					printstack(stack);
+					print_stack(stack);
 					if (IP >= numc)
 					{
 						errnom = PROGRAM_ERROR_1;
@@ -622,7 +628,7 @@ int main(void)
 					}
 					if (errnom)
 					{
-						ag = 'q';						
+						ag = 'q';
 					}
 				break;
 				case 'R':
@@ -641,17 +647,17 @@ int main(void)
 						}
 						if (errnom)
 						{
-							ag = 'q';						
+							ag = 'q';
 						}
 					}
-					printstack(stack);					
+					print_stack(stack);
 				break;
 				}
 
 			}
-		
-		
-			stack = freestack (stack);
+
+
+			stack = free_stack (stack);
 			free (pamiat);
 		}
 		else
@@ -660,7 +666,7 @@ int main(void)
 		}
 	}
 	if (prog != NULL) free (prog);
-	switch (errnom) 
+	switch (errnom)
 	{
 	case 0:
 		printf ("End of program\n");
@@ -691,6 +697,6 @@ int main(void)
 	break;
 	}
 
-	return errnom;	
+	return errnom;
 }
 
