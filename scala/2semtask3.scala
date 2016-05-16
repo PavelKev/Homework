@@ -4,7 +4,8 @@
 object SetRealisation {
   type Set = Int => Boolean
 
-  def contains(s: Set, elem: Int): Boolean = s(elem)
+  def contains(s: Set, elem: Int): Boolean =
+    s(elem)
 
   def singletonSet(elem: Int): Set =
     x => x == elem
