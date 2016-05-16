@@ -11,7 +11,7 @@
 
 #define ERROR_OPEN_FILE -3
 #define SYNTAX_ERROR -5
-#define LINK_ERROR_1 -7//Две различные команды помечены одинаковой меткой
+#define LINK_ERROR_1 -7//Две разные команды помечены одинаковой меткой
 #define LINK_ERROR_2 -9//Ссылка на несуществующую метку
 #define STACK_ERROR -11//Чтение из пустого стека
 #define PROGRAM_ERROR_1 -13//Выход IP за пределы количества команд
