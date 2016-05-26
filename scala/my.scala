@@ -60,6 +60,29 @@ object Pensil extends SimpleSwingApplication {
 
   case class giffile (header: gifhead, globColorTable: Array[Int], imagedes: List[image], images: List[Array[Int]], animations: List[animation])
 
+  def Decode(path: String): giffile = {
+
+    val headerCodec = (uint16L :: uint16L :: bool :: uintL(3) :: bool :: uintL(3) :: uint8L :: uint8L).as[gifhead]
+    val imageCodec = (uint16L :: uint16L :: uint16L :: uint16L :: bool :: bool :: bool :: uint2L :: uintL(3)).as[image]
+    val animationCodec = (uintL(3) :: bool :: bool :: uint16L :: uint8L).as[animation]
+
+    def crColorofTable(table: Array[Int], size: Int, Vect: BitVector): Array[Int] = {
+
+      if (size == 0)
+        table
+
+      else {
+
+        val red = Vect.take(8).toInt(false, LittleEndian)
+        val green = Vect.drop(8).take(8).toInt(false, LittleEndian)
+        val blue = Vect.drop(16).take(8).toInt(false, LittleEndian)
+        val colorNew = red * 1000000 + green * 1000 + blue
+
+        //format RRRGGGBBB
+
+        crColorofTable(table :+ colorNew, size - 1, Vect.drop(24))
+      }
+    }
 
   def LZW(minr: Int, input: BitVector, CT: List[Int]): Array[Int] = {
 
@@ -99,29 +122,7 @@ object Pensil extends SimpleSwingApplication {
       Array(CT(elemFirst)), elemClear + 1)
   }
 
-  def Decode(path: String): giffile = {
 
-    val headerCodec = (uint16L :: uint16L :: bool :: uintL(3) :: bool :: uintL(3) :: uint8L :: uint8L).as[gifhead]
-    val imageCodec = (uint16L :: uint16L :: uint16L :: uint16L :: bool :: bool :: bool :: uint2L :: uintL(3)).as[image]
-    val animationCodec = (uintL(3) :: bool :: bool :: uint16L :: uint8L).as[animation]
-
-    def crColorofTable(table: Array[Int], size: Int, Vect: BitVector): Array[Int] = {
-
-      if (size == 0)
-        table
-
-      else {
-
-        val red = Vect.take(8).toInt(false, LittleEndian)
-        val green = Vect.drop(8).take(8).toInt(false, LittleEndian)
-        val blue = Vect.drop(16).take(8).toInt(false, LittleEndian)
-        val colorNew = red * 1000000 + green * 1000 + blue
-
-        //format RRRGGGBBB
-
-        crColorofTable(table :+ colorNew, size - 1, Vect.drop(24))
-      }
-    }
 
     def Drop(Vect: BitVector): BitVector = {
 
@@ -267,7 +268,7 @@ object Pensil extends SimpleSwingApplication {
   var Numb = 0
 
   def Peak = new MainFrame {
-    def tick() = {
+    def check() = {
 
       var methodDisp= gif.animations(Numb % module).method
 
@@ -289,7 +290,7 @@ object Pensil extends SimpleSwingApplication {
       }
     }
 
-    Timer(gif.animations(Numb % module).detention) {tick()}
+    Timer(gif.animations(Numb % module).detention) {check()}
 
   }
 }
