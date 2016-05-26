@@ -59,14 +59,14 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
      case class giffile (header: gifhead, globColorTable: Array[Int], imagedes: List[image], images: List[Array[Int]], animations: List[animation])
 
 
-   def LZW(minr: Int, input: BitVect, CT: List[Int]): Array[Int] = {
+   def LZW(minr: Int, input: BitVector, CT: List[Int]): Array[Int] = {
      
      def Listof(list: List[Int], acc: List[Array[Int]]): List[Array[Int]] =
        if (list.isEmpty)    acc.reverse
         else     Listof(list.tail, Array(list.head) :: acc)
 
 
-      def Itr(elemSize: Int, Pref: Array[Int], in: BitVect, table: List[Array[Int]], out: Array[Int], elemEnd: Int): Array[Int] = {
+      def Itr(elemSize: Int, Pref: Array[Int], in: BitVector, table: List[Array[Int]], out: Array[Int], elemEnd: Int): Array[Int] = {
         
       val elem = in.take(elemSize).reverseBitOrder.toInt(false, LittleEndian)
       if (elem == elemEnd) 
@@ -103,7 +103,7 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
     val imageCodec = (uint16L :: uint16L :: uint16L :: uint16L :: bool :: bool :: bool :: uint2L :: uintL(3)).as[image]
     val animationCodec = (uintL(3) :: bool :: bool :: uint16L :: uint8L).as[animation]
 
-    def crColorofTable(table: Array[Int], size: Int, Vect: BitVect): Array[Int] = {
+    def crColorofTable(table: Array[Int], size: Int, Vect: BitVector): Array[Int] = {
       
       if (size == 0) 
         table
@@ -121,7 +121,7 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
       }
     }
     
-    def Drop(Vect: BitVect): BitVect = {
+    def Drop(Vect: BitVector): BitVector = {
       
       val size = Vect.take(8).toInt(false, LittleEndian)
       val Vectnew = Vect.drop(8)
@@ -131,8 +131,8 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
       
     }
     
-    def getImage(vec: BitVect, acc: BitVect): BitVect = {
-      def reversebits(in_bl: BitVect, Obl: BitVect): BitVect = {
+    def getImage(vec: BitVector, acc: BitVector): BitVector = {
+      def reversebits(in_bl: BitVector, Obl: BitVector): BitVector = {
         if (in_bl.isEmpty) {
           Obl
         }
@@ -146,11 +146,11 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
       
       else {
         val block = Vect.take(size * 8)
-        getImage(Vect.drop(size * 8), acc ++ reversebits(block, BitVect(Nil)))
+        getImage(Vect.drop(size * 8), acc ++ reversebits(block, BitVector(Nil)))
       }
     }
 
-    def caseDescript(Vect: BitVect, giffile: giffile): giffile = {
+    def caseDescript(Vect: BitVector, giffile: giffile): giffile = {
 
       val Ext = Vect.take(8).toInt(false, LittleEndian)
 
@@ -166,7 +166,7 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
         }
         val root = (Vectnew.take(8).toInt(false, LittleEndian))
         Vectnew = Vectnew.drop(8)
-        var image_Vect = getImage(Vectnew, BitVect(Nil))
+        var image_Vect = getImage(Vectnew, BitVector(Nil))
         var CT: Array[Int] = Array[Int]()
         
         if (imageDescriptNew.LCT_flag)  CT = LSTnew
@@ -217,7 +217,7 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
     }
 
     val byteArray = Files.readAllBytes(Paths.get(path))
-    var bitVect = (BitVect(byteArray)).drop(48)
+    var bitVect = (BitVector(byteArray)).drop(48)
     val decoded_header = headerCodec.decode(bitVect).require.value
     bitVect = bitVect.drop(7 * 8)
     var GCT: Array[Int] = Array[Int](0)
@@ -276,7 +276,7 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
         }
       }
       else if (methodDisp== 3) {
-        contents = new argsPanel(frames((Numb - 1) % module)) {
+        contents = new DataPanel(frames((Numb - 1) % module)) {
           preferredSize = new Dimension(gif.header.width * scale, gif.header.height * scale)
         }
       }
