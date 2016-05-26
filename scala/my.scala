@@ -12,12 +12,14 @@ import swing.{Panel, MainFrame, SimpleSwingApplication}
 import java.awt.{Color, Graphics2D, Dimension}
 import java.awt.image.BufferedImage
 
+
 class DataPanel(args: Array[Array[Color]]) extends Panel {
   override def paintComponent(g: Graphics2D) {
 
+
     val height = args.map(_.length).max
     val width = args.length
-    val dx = g.getClipBounds.width.toFloat  / width
+    val dx = g.getClipBounds.width.toFloat / width
     val dy = g.getClipBounds.height.toFloat / height
     for {
       x <- 0 until args.length
@@ -37,66 +39,66 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
   }
 
 }
-  object Timer {
-   def apply(interval: Int, repeats: Boolean = true)(op: => Unit) {
+object Timer {
+  def apply(interval: Int, repeats: Boolean = true)(op: => Unit) {
     val timeisout = new javax.swing.AbstractAction() {
       def actionPerformed(e : java.awt.event.ActionEvent) = op
     }
-      val t = new javax.swing.Timer(interval, timeisout)
-      t.setRepeats(repeats)
-      t.start()
-    }
+    val t = new javax.swing.Timer(interval, timeisout)
+    t.setRepeats(repeats)
+    t.start()
   }
+}
 
-  object Pensil extends SimpleSwingApplication {
+object Pensil extends SimpleSwingApplication {
 
-    case class gifhead (width: Int, height: Int, GCT_flag: Boolean, colorres: Int, SF: Boolean, GCT: Int, Bkground_color: Int, ratio: Int)
+  case class gifhead (width: Int, height: Int, GCTf: Boolean, colorres: Int, SF: Boolean, GCTs: Int, Bkground_color: Int, ratio: Int)
 
-     case class image (LP: Int, TP: Int, width: Int, height: Int, LCT: Boolean, inplace_flag: Boolean, sort: Boolean, revbits: Int, LCT_size: Int)
+  case class image (LP: Int, TP: Int, width: Int, height: Int, LCTf: Boolean, inplace_flag: Boolean, sort: Boolean, revbits: Int, LCTs: Int)
 
-     case class animation (method: Int, ui: Boolean, tc: Boolean, detention: Int, transcolor: Int)
+  case class animation (method: Int, ui: Boolean, tc: Boolean, detention: Int, transcolor: Int)
 
-     case class giffile (header: gifhead, globColorTable: Array[Int], imagedes: List[image], images: List[Array[Int]], animations: List[animation])
-
-
-   def LZW(minr: Int, input: BitVector, CT: List[Int]): Array[Int] = {
-     
-     def Listof(list: List[Int], acc: List[Array[Int]]): List[Array[Int]] =
-       if (list.isEmpty)    acc.reverse
-        else     Listof(list.tail, Array(list.head) :: acc)
+  case class giffile (header: gifhead, globColorTable: Array[Int], imagedes: List[image], images: List[Array[Int]], animations: List[animation])
 
 
-      def Itr(elemSize: Int, Pref: Array[Int], in: BitVector, table: List[Array[Int]], out: Array[Int], elemEnd: Int): Array[Int] = {
-        
+  def LZW(minr: Int, input: BitVector, CT: List[Int]): Array[Int] = {
+
+    def Listof(list: List[Int], acc: List[Array[Int]]): List[Array[Int]] =
+      if (list.isEmpty) acc.reverse
+      else Listof(list.tail, Array(list.head) :: acc)
+
+
+    def Itr(elemSize: Int, Pref: Array[Int], in: BitVector, table: List[Array[Int]], out: Array[Int], elemEnd: Int): Array[Int] = {
+
       val elem = in.take(elemSize).reverseBitOrder.toInt(false, LittleEndian)
-      if (elem == elemEnd) 
+      if (elem == elemEnd)
         out
-      
+
       else if (elem < table.length) {
-        
+
         val Ntable = table ::: List((Pref :+ table(elem)(0)))
         val Nout = out ++ table(elem)
-        
+
         Itr(1 + (Math.log(Ntable.length) / Math.log(2)).toInt, table(elem), in.drop(elemSize),
           Ntable, Nout, elemEnd)
       }
       else {
-        
+
         val Ntable = table ::: List((Pref :+ Pref(0)))
         val Nout = out ++ (Pref :+ Pref(0))
-        
+
         Itr(1 + (Math.log(Ntable.length) / Math.log(2)).toInt, Pref :+ Pref(0), in.drop(elemSize),
           Ntable, Nout, elemEnd)
       }
     }
-     
+
     val elemClear = input.take(minr).reverseBitOrder.toInt(false, LittleEndian)
     val elemFirst = input.drop(minr).take(minr).reverseBitOrder.toInt(false, LittleEndian)
-     
+
     Itr(minr, Array(CT(elemFirst)), input.drop(2 * minr), Listof(CT, Nil),
       Array(CT(elemFirst)), elemClear + 1)
   }
-    
+
   def Decode(path: String): giffile = {
 
     val headerCodec = (uint16L :: uint16L :: bool :: uintL(3) :: bool :: uintL(3) :: uint8L :: uint8L).as[gifhead]
@@ -104,46 +106,46 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
     val animationCodec = (uintL(3) :: bool :: bool :: uint16L :: uint8L).as[animation]
 
     def crColorofTable(table: Array[Int], size: Int, Vect: BitVector): Array[Int] = {
-      
-      if (size == 0) 
+
+      if (size == 0)
         table
-      
+
       else {
-        
+
         val red = Vect.take(8).toInt(false, LittleEndian)
         val green = Vect.drop(8).take(8).toInt(false, LittleEndian)
         val blue = Vect.drop(16).take(8).toInt(false, LittleEndian)
-        val colorNew = red * 1000000 + green * 1000 + blue 
-        
+        val colorNew = red * 1000000 + green * 1000 + blue
+
         //format RRRGGGBBB
-        
+
         crColorofTable(table :+ colorNew, size - 1, Vect.drop(24))
       }
     }
-    
+
     def Drop(Vect: BitVector): BitVector = {
-      
+
       val size = Vect.take(8).toInt(false, LittleEndian)
       val Vectnew = Vect.drop(8)
-      
-      if (size == 0)  Vectnew
-      else  Drop(Vectnew.drop(8 * size))
-      
+
+      if (size == 0) Vectnew
+      else Drop(Vectnew.drop(8 * size))
+
     }
-    
+
     def getImage(vec: BitVector, acc: BitVector): BitVector = {
       def reversebits(in_bl: BitVector, Obl: BitVector): BitVector = {
         if (in_bl.isEmpty) {
           Obl
         }
-        else  reversebits(in_bl.drop(8), Obl ++ in_bl.take(8).reverseBitOrder)
+        else reversebits(in_bl.drop(8), Obl ++ in_bl.take(8).reverseBitOrder)
       }
-      
+
       val size = vec.take(8).toInt(false, LittleEndian)
       var Vect = vec.drop(8)
-      
-      if (size == 0)  acc
-      
+
+      if (size == 0) acc
+
       else {
         val block = Vect.take(size * 8)
         getImage(Vect.drop(size * 8), acc ++ reversebits(block, BitVector(Nil)))
@@ -155,25 +157,25 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
       val Ext = Vect.take(8).toInt(false, LittleEndian)
 
       if (Ext == 44) {
-        
+
         val imageDescriptNew = imageCodec.decode(Vect.drop(8)).require.value
         var LSTnew: Array[Int] = Array[Int]()
         var Vectnew = Vect.drop(8).drop(9 * 8)
-        
-        if (imageDescriptNew.LCT_flag) {
-          LSTnew = crColorofTable(LSTnew, Math.pow(2, imageDescriptNew.LCT_size + 1).toInt, Vect)
-          Vectnew = Vectnew.drop(Math.pow(2, imageDescriptNew.LCT_size + 1).toInt * 3 * 8)
+
+        if (imageDescriptNew.LCTf) {
+          LSTnew = crColorofTable(LSTnew, Math.pow(2, imageDescriptNew.LCTs + 1).toInt, Vect)
+          Vectnew = Vectnew.drop(Math.pow(2, imageDescriptNew.LCTs + 1).toInt * 3 * 8)
         }
         val root = (Vectnew.take(8).toInt(false, LittleEndian))
         Vectnew = Vectnew.drop(8)
-        var image_Vect = getImage(Vectnew, BitVector(Nil))
+        var imageVect = getImage(Vectnew, BitVector(Nil))
         var CT: Array[Int] = Array[Int]()
-        
-        if (imageDescriptNew.LCT_flag)  CT = LSTnew
-       
-        else  CT = giffile.globColorTable
-        
-        val imageNew = LZW(root + 1, image_Vect, CT.toList ::: List(1000000000, 2000000000))
+
+        if (imageDescriptNew.LCTf) CT = LSTnew
+
+        else CT = giffile.globColorTable
+
+        val imageNew = LZW(root + 1, imageVect, CT.toList ::: List(1000000000, 2000000000))
         val gifNew = new giffile(giffile.header, giffile.globColorTable, imageDescriptNew ::
           giffile.imagedes, imageNew :: giffile.images,
           giffile.animations)
@@ -221,9 +223,9 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
     val decoded_header = headerCodec.decode(bitVect).require.value
     bitVect = bitVect.drop(7 * 8)
     var GCT: Array[Int] = Array[Int](0)
-    if (decoded_header.GCT_flag) {
-      GCT = crColorofTable(Array[Int](), Math.pow(2, decoded_header.GCT_size + 1).toInt, bitVect)
-      bitVect = bitVect.drop(Math.pow(2, decoded_header.GCT_size + 1).toInt * 3 * 8)
+    if (decoded_header.GCTf) {
+      GCT = crColorofTable(Array[Int](), Math.pow(2, decoded_header.GCTs + 1).toInt, bitVect)
+      bitVect = bitVect.drop(Math.pow(2, decoded_header.GCTs + 1).toInt * 3 * 8)
     }
     val file = new giffile(decoded_header, GCT, Nil, Nil, Nil)
     caseDescript(bitVect, file)
@@ -233,10 +235,10 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
   }
   def getFrame(ims: List[Array[Int]], Dsc: List[image], acc: List[Array[Array[Color]]]): List[Array[Array[Color]]] = {
     def frame(Bk: Array[Array[Color]], im: Array[Int], w: Int, h: Int, desc: image): Array[Array[Color]] = {
-      
+
       val new_frame = Bk
       var i = 0
-      
+
       for {
         x <- 0 until w
         y <- 0 until h
@@ -248,27 +250,27 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
       }
       new_frame
     }
-    if(ims.isEmpty)  acc
-    
+    if(ims.isEmpty) acc
+
     else {
       getFrame(ims.tail, Dsc.tail, acc :+ frame(Array.fill(gif.header.width,
         gif.header.height)(color(gif.globColorTable(gif.header.Bkground_color))), ims.head,
         gif.header.width, gif.header.height, Dsc.head))
     }
   }
-    
+
   val gif: giffile = Decode("file.gif")
   val scale = 30
   val Bk = Array.fill(gif.header.width, gif.header.height)(color(gif.globColorTable(gif.header.Bkground_color)))
-    val module = frames.length
-    val frames = getFrame(gif.images, gif.imagedes, Nil).toArray
+  val module = frames.length
+  val frames = getFrame(gif.images, gif.imagedes, Nil).toArray
   var Numb = 0
-    
+
   def Peak = new MainFrame {
     def tick() = {
-      
+
       var methodDisp= gif.animations(Numb % module).method
-      
+
       if (methodDisp == 2) {
         contents = new DataPanel(Bk)
         {
@@ -280,7 +282,7 @@ class DataPanel(args: Array[Array[Color]]) extends Panel {
           preferredSize = new Dimension(gif.header.width * scale, gif.header.height * scale)
         }
       }
-      
+
       Numb = Numb + 1
       contents = new DataPanel(frames((Numb - 1) % module)) {
         preferredSize = new Dimension(gif.header.width * scale, gif.header.height * scale)
