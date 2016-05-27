@@ -84,43 +84,43 @@ object Pensil extends SimpleSwingApplication {
       }
     }
 
-  def LZW(minr: Int, input: BitVector, CT: List[Int]): Array[Int] = {
+    def LZW(minr: Int, input: BitVector, CT: List[Int]): Array[Int] = {
 
-    def Listof(list: List[Int], acc: List[Array[Int]]): List[Array[Int]] =
-      if (list.isEmpty) acc.reverse
-      else Listof(list.tail, Array(list.head) :: acc)
+      def Listof(list: List[Int], acc: List[Array[Int]]): List[Array[Int]] =
+        if (list.isEmpty) acc.reverse
+        else Listof(list.tail, Array(list.head) :: acc)
 
 
-    def Itr(elemSize: Int, Pref: Array[Int], in: BitVector, table: List[Array[Int]], out: Array[Int], elemEnd: Int): Array[Int] = {
+      def Itr(elemSize: Int, Pref: Array[Int], in: BitVector, table: List[Array[Int]], out: Array[Int], elemEnd: Int): Array[Int] = {
 
-      val elem = in.take(elemSize).reverseBitOrder.toInt(false, LittleEndian)
-      if (elem == elemEnd)
-        out
+        val elem = in.take(elemSize).reverseBitOrder.toInt(false, LittleEndian)
+        if (elem == elemEnd)
+          out
 
-      else if (elem < table.length) {
+        else if (elem < table.length) {
 
-        val Ntable = table ::: List((Pref :+ table(elem)(0)))
-        val Nout = out ++ table(elem)
+          val Ntable = table ::: List((Pref :+ table(elem)(0)))
+          val Nout = out ++ table(elem)
 
-        Itr(1 + (Math.log(Ntable.length) / Math.log(2)).toInt, table(elem), in.drop(elemSize),
-          Ntable, Nout, elemEnd)
+          Itr(1 + (Math.log(Ntable.length) / Math.log(2)).toInt, table(elem), in.drop(elemSize),
+            Ntable, Nout, elemEnd)
+        }
+        else {
+
+          val Ntable = table ::: List((Pref :+ Pref(0)))
+          val Nout = out ++ (Pref :+ Pref(0))
+
+          Itr(1 + (Math.log(Ntable.length) / Math.log(2)).toInt, Pref :+ Pref(0), in.drop(elemSize),
+            Ntable, Nout, elemEnd)
+        }
       }
-      else {
 
-        val Ntable = table ::: List((Pref :+ Pref(0)))
-        val Nout = out ++ (Pref :+ Pref(0))
+      val elemClear = input.take(minr).reverseBitOrder.toInt(false, LittleEndian)
+      val elemFirst = input.drop(minr).take(minr).reverseBitOrder.toInt(false, LittleEndian)
 
-        Itr(1 + (Math.log(Ntable.length) / Math.log(2)).toInt, Pref :+ Pref(0), in.drop(elemSize),
-          Ntable, Nout, elemEnd)
-      }
+      Itr(minr, Array(CT(elemFirst)), input.drop(2 * minr), Listof(CT, Nil),
+        Array(CT(elemFirst)), elemClear + 1)
     }
-
-    val elemClear = input.take(minr).reverseBitOrder.toInt(false, LittleEndian)
-    val elemFirst = input.drop(minr).take(minr).reverseBitOrder.toInt(false, LittleEndian)
-
-    Itr(minr, Array(CT(elemFirst)), input.drop(2 * minr), Listof(CT, Nil),
-      Array(CT(elemFirst)), elemClear + 1)
-  }
 
 
 
@@ -267,7 +267,7 @@ object Pensil extends SimpleSwingApplication {
   val frames = getFrame(gif.images, gif.imagedes, Nil).toArray
   var Numb = 0
 
-  def Peak = new MainFrame {
+  def top = new MainFrame {
     def check() = {
 
       var methodDisp= gif.animations(Numb % module).method
